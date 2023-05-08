@@ -4,85 +4,265 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-
+const hre = require("hardhat");
+const HashAcceptedMessage = (id, vin, vrp, uri, oldOwner, newOwner) => {
+  const encodePackedpacked = ethers.utils.solidityPack(
+    ["uint256", "string", "string", "string", "string", "string"],
+    [id, vin, vrp, uri, oldOwner, newOwner]
+  );
+  const hash = ethers.utils.keccak256(encodePackedpacked);
+  return hash;
+};
+const HashDeclinedMessage = (id) => {
+  const encodePackedpacked = ethers.utils.solidityPack(
+    ["uint256", "string"],
+    [id, "Declined"]
+  );
+  const hash = ethers.utils.keccak256(encodePackedpacked);
+  return hash;
+};
+const SignMessage = async (hash, account) => {
+  const signMessage = await account.signMessage(ethers.utils.arrayify(hash));
+  return signMessage;
+};
 describe("RegisterCertificates", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
   async function deploy() {
-    const [owner, otherAccount, t] = await ethers.getSigners();
+    const [government, employer, state, police, djondarm, tax] =
+      await ethers.getSigners();
 
     const RegisterCertificates = await ethers.getContractFactory(
       "RegisterCertificates"
     );
     const registerCertificates = await RegisterCertificates.deploy();
 
-    return { registerCertificates, owner, otherAccount };
+    return {
+      registerCertificates,
+      government,
+      employer,
+      state,
+      police,
+      djondarm,
+      tax,
+    };
   }
 
   describe("Deployment", function () {
-    it("Should add and check if Temporary Certificate exist", async function () {
-      const { registerCertificates, owner, otherAccount } = await loadFixture(
-        deploy
-      );
-      let vin = "123";
+    it("Should be Certificate Id Counter 1", async function () {
+      const { registerCertificates, employer, otherAccount } =
+        await loadFixture(deploy);
+      let expected = 1;
+      expect(await registerCertificates.currentId()).to.equal(expected);
+    });
+    it("Should be the deployer an admin ", async function () {
+      const { registerCertificates, government } = await loadFixture(deploy);
+      let expected = true;
       expect(
-        await registerCertificates.isTemporaryCertificateExist(vin)
-      ).to.equal(0);
+        await registerCertificates.hasRole(
+          hre.ethers.utils.hexZeroPad(ethers.utils.hexlify(0), 32),
+          government.address
+        )
+      ).to.equal(expected);
     });
-    it("Should add and check if Temporary Certificate exist", async function () {
-      const { registerCertificates, owner, otherAccount } = await loadFixture(
-        deploy
-      );
-      let vin = "123";
-      await registerCertificates.addRegisterCertificate(vin, 1, [
-        otherAccount.address,
-      ]);
+  });
+  describe("Access Controle", function () {
+    it("Should be added Police Address", async function () {
+      const {
+        registerCertificates,
+        government,
+        employer,
+        state,
+        police,
+        djondarm,
+        tax,
+      } = await loadFixture(deploy);
+      await registerCertificates
+        .connect(government)
+        .grantRole(
+          hre.ethers.utils.formatBytes32String("POLICE"),
+          police.address
+        );
+
       expect(
-        await registerCertificates.isTemporaryCertificateExist(vin)
-      ).to.equal(1);
+        await registerCertificates.hasRole(
+          hre.ethers.utils.formatBytes32String("POLICE"),
+          police.address
+        )
+      ).to.equal(true);
     });
-    it("Should add with 1 signer and check if Certificate pending", async function () {
-      const { registerCertificates, owner, otherAccount } = await loadFixture(
-        deploy
+  });
+  describe("Signin", function () {
+    it("Should be the hash methode be the same on smart contract and js", async function () {
+      const {
+        registerCertificates,
+        government,
+        employer,
+        state,
+        police,
+        djondarm,
+        tax,
+      } = await loadFixture(deploy);
+      await registerCertificates.mintRegisterCertificate(
+        "AA123456789AA",
+        "001234-567-89",
+        "12346789",
+        "DZ132456"
       );
-      let vin = "123";
-      await registerCertificates.addRegisterCertificate(vin, 1, [
-        otherAccount.address,
-      ]);
+      const temporaryRegisterCertificate =
+        await registerCertificates.getTemporaryRegisterCertificates_Others(1);
+      const hashed = HashAcceptedMessage(
+        temporaryRegisterCertificate.registerCertificateId,
+        temporaryRegisterCertificate.vin,
+        temporaryRegisterCertificate.vrp,
+        temporaryRegisterCertificate.uri,
+        temporaryRegisterCertificate.oldOwner,
+        temporaryRegisterCertificate.newOwner
+      );
+      const contractSign = await registerCertificates.getMessageHashAccepted(
+        temporaryRegisterCertificate.registerCertificateId,
+        temporaryRegisterCertificate.vin,
+        temporaryRegisterCertificate.vrp,
+        temporaryRegisterCertificate.uri,
+        temporaryRegisterCertificate.oldOwner,
+        temporaryRegisterCertificate.newOwner
+      );
+      expect(hashed).to.equal(contractSign);
+    });
+    it("Should be the signed message can be verify on smart contract for Accepted", async function () {
+      const {
+        registerCertificates,
+        government,
+        employer,
+        state,
+        police,
+        djondarm,
+        tax,
+      } = await loadFixture(deploy);
+      await registerCertificates.mintRegisterCertificate(
+        "AA123456789AA",
+        "001234-567-89",
+        "12346789",
+        "DZ132456"
+      );
       await registerCertificates
-        .connect(otherAccount)
-        .SigntemporaryRegisterCertificates(0, vin);
-
-      expect(await registerCertificates.isCertificateExist(vin)).to.equal(2);
-    });
-    it("Should be Pending when signed with one", async function () {
-      const { registerCertificates, owner, otherAccount } = await loadFixture(
-        deploy
+        .connect(government)
+        .grantRole(
+          hre.ethers.utils.formatBytes32String("POLICE"),
+          police.address
+        );
+      const temporaryRegisterCertificate =
+        await registerCertificates.getTemporaryRegisterCertificates_Others(1);
+      const hashed = HashAcceptedMessage(
+        temporaryRegisterCertificate.registerCertificateId,
+        temporaryRegisterCertificate.vin,
+        temporaryRegisterCertificate.vrp,
+        temporaryRegisterCertificate.uri,
+        temporaryRegisterCertificate.oldOwner,
+        temporaryRegisterCertificate.newOwner
       );
-      let vin = "123";
-      await registerCertificates.addRegisterCertificate(vin, 2, [
-        owner.address,
-        otherAccount.address,
-      ]);
-      await registerCertificates.SigntemporaryRegisterCertificates(0, vin);
+      const messageSigned = await SignMessage(hashed, police);
 
-      expect(await registerCertificates.isCertificateExist(vin)).to.equal(0);
-    });
-    it("Should be Accepted when signed with one when signed by all signers", async function () {
-      const { registerCertificates, owner, otherAccount } = await loadFixture(
-        deploy
-      );
-      let vin = "123";
-      await registerCertificates.addRegisterCertificate(vin, 2, [
-        owner.address,
-        otherAccount.address,
-      ]);
-      await registerCertificates.SigntemporaryRegisterCertificates(0, vin);
       await registerCertificates
-        .connect(otherAccount)
-        .SigntemporaryRegisterCertificates(1, vin);
-      expect(await registerCertificates.isCertificateExist(vin)).to.equal(2);
+        .connect(police)
+        .PoliceSiging(
+          temporaryRegisterCertificate.registerCertificateId,
+          messageSigned
+        );
+      const tce =
+        await registerCertificates.getTemporaryRegisterCertificates_States(
+          temporaryRegisterCertificate.registerCertificateId
+        );
+      const resultat = tce.signers[3];
+      expect(resultat).to.equal(messageSigned);
+      expect(tce.requireSigners).to.equal(5);
+    });
+    it("Should be the signed message can be verify on smart contract for Declined", async function () {
+      const {
+        registerCertificates,
+        government,
+        employer,
+        state,
+        police,
+        djondarm,
+        tax,
+      } = await loadFixture(deploy);
+      await registerCertificates.mintRegisterCertificate(
+        "AA123456789AA",
+        "001234-567-89",
+        "12346789",
+        "DZ132456"
+      );
+      await registerCertificates
+        .connect(government)
+        .grantRole(
+          hre.ethers.utils.formatBytes32String("POLICE"),
+          police.address
+        );
+      const temporaryRegisterCertificate =
+        await registerCertificates.getTemporaryRegisterCertificates_Others(1);
+      const hashed = HashDeclinedMessage(
+        temporaryRegisterCertificate.registerCertificateId
+      );
+      const messageSigned = await SignMessage(hashed, police);
+
+      await registerCertificates
+        .connect(police)
+        .PoliceSiging(
+          temporaryRegisterCertificate.registerCertificateId,
+          messageSigned
+        );
+      const tce =
+        await registerCertificates.getTemporaryRegisterCertificates_States(
+          temporaryRegisterCertificate.registerCertificateId
+        );
+      const resultat = tce.signers[3];
+      expect(hre.ethers.utils.toUtf8String(resultat)).to.equal("DECLINED");
+    });
+    it("Should be the signed message can be verify on smart contract for wrong paramter with error", async function () {
+      const {
+        registerCertificates,
+        government,
+        employer,
+        state,
+        police,
+        djondarm,
+        tax,
+      } = await loadFixture(deploy);
+      await registerCertificates.mintRegisterCertificate(
+        "AA123456789AA",
+        "001234-567-89",
+        "12346789",
+        "DZ132456"
+      );
+      await registerCertificates
+        .connect(government)
+        .grantRole(
+          hre.ethers.utils.formatBytes32String("POLICE"),
+          police.address
+        );
+      const temporaryRegisterCertificate =
+        await registerCertificates.getTemporaryRegisterCertificates_Others(1);
+      const hashed = HashAcceptedMessage(
+        temporaryRegisterCertificate.registerCertificateId,
+        temporaryRegisterCertificate.vin,
+        "error",
+        temporaryRegisterCertificate.uri,
+        temporaryRegisterCertificate.oldOwner,
+        temporaryRegisterCertificate.newOwner
+      );
+      const messageSigned = await SignMessage(hashed, police);
+
+      const contractSign = await registerCertificates
+        .connect(police)
+        .PoliceSiging(
+          temporaryRegisterCertificate.registerCertificateId,
+          messageSigned
+        );
+      const tce =
+        await registerCertificates.getTemporaryRegisterCertificates_States(
+          temporaryRegisterCertificate.registerCertificateId
+        );
+      const resultat = tce.signers[3];
+      expect(hre.ethers.utils.toUtf8String(resultat)).to.equal("NOTSIGNED");
     });
   });
 });

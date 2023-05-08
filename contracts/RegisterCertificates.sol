@@ -3,8 +3,9 @@ pragma solidity 0.8.18;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./VerifySignature.sol";
 
-contract RegisterCertificates is AccessControl {
+contract RegisterCertificates is AccessControl, VerifySignature {
     using Counters for Counters.Counter;
     Counters.Counter private _certificateIdCounter;
 
@@ -20,7 +21,7 @@ contract RegisterCertificates is AccessControl {
         string vrp;
         string uri;
         string oldowner;
-        string owner;
+        string newOwner;
         bytes32 proof;
         Status status;
     }
@@ -30,9 +31,9 @@ contract RegisterCertificates is AccessControl {
         string vrp;
         string uri;
         string oldOwner;
-        string owner;
+        string newOwner;
         uint8 requireSigners;
-        bytes32[6] signers;
+        bytes[6] signers;
     }
     mapping(uint256 => TemporaryRegisterCertificate) _idToTemporaryRegisterCertificates;
 
@@ -48,6 +49,10 @@ contract RegisterCertificates is AccessControl {
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _certificateIdCounter.increment();
+    }
+
+    function currentId() public view returns (uint256) {
+        return _certificateIdCounter.current();
     }
 
     function mintRegisterCertificate(
@@ -75,12 +80,12 @@ contract RegisterCertificates is AccessControl {
             owner,
             6,
             [
-                bytes32(0),
-                bytes32(0),
-                bytes32(0),
-                bytes32(0),
-                bytes32(0),
-                bytes32(0)
+                bytes("NOTSIGNED"),
+                bytes("NOTSIGNED"),
+                bytes("NOTSIGNED"),
+                bytes("NOTSIGNED"),
+                bytes("NOTSIGNED"),
+                bytes("NOTSIGNED")
             ]
         );
         _idToTemporaryRegisterCertificates[certificatId] = TRC;
@@ -108,13 +113,44 @@ contract RegisterCertificates is AccessControl {
             memory tce = _idToTemporaryRegisterCertificates[id];
         tce.requireSigners = 0;
         tce.signers = [
-            bytes32(0),
-            bytes32(0),
-            bytes32(0),
-            bytes32(0),
-            bytes32(0),
-            bytes32(0)
+            bytes(""),
+            bytes(""),
+            bytes(""),
+            bytes(""),
+            bytes(""),
+            bytes("")
         ];
         return tce;
+    }
+
+    function PoliceSiging(uint256 id, bytes memory signature) external {
+        require(
+            hasRole(bytes32("POLICE"), msg.sender),
+            "Only Polices can access to this method"
+        );
+        TemporaryRegisterCertificate
+            storage tce = _idToTemporaryRegisterCertificates[id];
+        require(
+            keccak256(abi.encodePacked(tce.signers[3])) ==
+                keccak256(abi.encodePacked(bytes("NOTSIGNED"))),
+            "Already Signed"
+        );
+        if (
+            verifyAccepted(
+                msg.sender,
+                tce.registerCertificateId,
+                tce.vin,
+                tce.vrp,
+                tce.uri,
+                tce.oldOwner,
+                tce.newOwner,
+                signature
+            )
+        ) {
+            tce.signers[3] = signature;
+            tce.requireSigners--;
+        } else if (verifyDeclined(msg.sender, id, signature)) {
+            tce.signers[3] = bytes("DECLINED");
+        }
     }
 }
