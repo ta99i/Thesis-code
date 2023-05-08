@@ -1,0 +1,65 @@
+certificate :
+            Temporary
+                param:
+                    id
+                    uri
+                    VIN
+                    Sginers[]:
+                        0=> Employer
+                        1=> Original State
+                        2=> Target State
+                        3=> Police
+                        4=> Djondarm
+                        5=> Taxes
+                Etat : 
+                    Pending
+                Signers :
+                    Employer:bool / State:bool / Police:bool / Djondarm:bool / Taxes:bool
+            Final
+                Param:
+                    id
+                    uri
+                    VIN
+                    MerkleTree
+                Etat:
+                    Baladiya:
+                        Accepted / Canceled / Thifed /  Pending
+                    Police :
+                        true / false
+                    Taxes : 
+                        true / false
+                    Djondarm : 
+                        true / false
+                MerkleTree :
+                    MerkleTree(Employer / State / Police / Djondarm / Taxes)
+
+    ///
+        vars:
+            mapping(id=>cerificate) 
+            mapping(id=>owner)    
+            mapping(VRI=>id)
+            mapping(VRP=>id)
+    ///
+        functions : 
+            createRC(VRI,VRP,Owner,URI)=>{Signed By Employer / State / Police / Djondarm / Taxes} :
+                in this case the target state will be the same Original State
+            Transfer :
+            On all Transfer we need to check first Etat of RC:{We need To be all False and baladiya Accepted} 
+                transferIN(URI,new Owner)=>{Signed By Employer / Original State / Target State/ Police / Djondarm / Taxes} :
+                    in this case the target state will be the same Original State
+                transferOut(URI,new Owner,TatgetState)=>{Signed By Employer / Original State / Target State/ Police / Djondarm / Taxes}
+    /// How To manage Signs ?
+        We need At first to register all members and give every member a role & We need to register Every Signed 
+            we will use access contrle ?
+            we will save on merkletree ?:
+                the certificate will have two etats :   - On transfer or create (Temporary): 
+                                                                                            - That we will have all signs
+                                                                                            - When we Complted we will deleted
+
+                                                        - On Final Etate (Final):
+                                                                                            - From all signs we will generate a Merkletree to save all data in one hash
+
+    /// How I know if someone denied 
+        
+    /// How The Sign will be 
+        hash(hash(id) + hash(URI) + hash(VIN) + hash(old owner) + hash(newOwner))*Sign offchain
