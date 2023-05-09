@@ -5,8 +5,8 @@ certificate :
                     uri
                     VIN
                     Sginers[]:
-                        0=> Employer
-                        1=>  State
+                        0=> Government
+                        1=> Employer
                         2=> Police
                         3=> Djondarm
                         4=> Taxes

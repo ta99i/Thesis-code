@@ -27,7 +27,7 @@ const SignMessage = async (hash, account) => {
 };
 describe("RegisterCertificates", function () {
   async function deploy() {
-    const [government, employer, state, police, gendarmerie, tax] =
+    const [government, employer, police, gendarmerie, tax] =
       await ethers.getSigners();
 
     const RegisterCertificates = await ethers.getContractFactory(
@@ -39,7 +39,6 @@ describe("RegisterCertificates", function () {
       registerCertificates,
       government,
       employer,
-      state,
       police,
       gendarmerie,
       tax,
@@ -48,8 +47,9 @@ describe("RegisterCertificates", function () {
 
   describe("Deployment", function () {
     it("Should be Certificate Id Counter 1", async function () {
-      const { registerCertificates, employer, otherAccount } =
-        await loadFixture(deploy);
+      const { registerCertificates, government, employer } = await loadFixture(
+        deploy
+      );
       let expected = 1;
       expect(await registerCertificates.currentId()).to.equal(expected);
     });
@@ -68,9 +68,8 @@ describe("RegisterCertificates", function () {
     it("Should be added all 5 roles", async function () {
       const {
         registerCertificates,
-        government,
         employer,
-        state,
+        government,
         police,
         gendarmerie,
         tax,
@@ -84,8 +83,8 @@ describe("RegisterCertificates", function () {
       await registerCertificates
         .connect(government)
         .grantRole(
-          hre.ethers.utils.formatBytes32String("STATE"),
-          state.address
+          hre.ethers.utils.formatBytes32String("GOVERNMENT"),
+          government.address
         );
       await registerCertificates
         .connect(government)
@@ -111,8 +110,8 @@ describe("RegisterCertificates", function () {
       ).to.equal(true);
       expect(
         await registerCertificates.hasRole(
-          hre.ethers.utils.formatBytes32String("STATE"),
-          state.address
+          hre.ethers.utils.formatBytes32String("GOVERNMENT"),
+          government.address
         )
       ).to.equal(true);
       expect(
@@ -135,13 +134,13 @@ describe("RegisterCertificates", function () {
       ).to.equal(true);
     });
   });
-  describe("Message Hash & Sign", function () {
+  describe("Create Register Certificate Hash & Sign", function () {
     describe("Hash", function () {
       let _contract;
       let _signers;
-      let _roles = ["EMPLOYER", "STATE", "POLICE", "GENDARMERIE", "TAX"];
+      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
       beforeEach(async () => {
-        const [employer, state, police, gendarmerie, tax] =
+        const [employer, government, police, gendarmerie, tax] =
           await ethers.getSigners();
 
         const RegisterCertificates = await ethers.getContractFactory(
@@ -150,7 +149,7 @@ describe("RegisterCertificates", function () {
         const registerCertificates = await RegisterCertificates.deploy();
 
         _contract = registerCertificates;
-        _signers = [employer, state, police, gendarmerie, tax];
+        _signers = [employer, government, police, gendarmerie, tax];
         await Promise.all(
           _roles.map(async (role, i) => {
             await registerCertificates.grantRole(
@@ -168,7 +167,7 @@ describe("RegisterCertificates", function () {
       });
       it("Should be the hash methode be the same on smart contract and js", async function () {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Others(1);
+          await _contract.getTemporaryRegisterCertificates_Government(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -191,9 +190,9 @@ describe("RegisterCertificates", function () {
     describe("Sign", function () {
       let _contract;
       let _signers;
-      let _roles = ["EMPLOYER", "STATE", "POLICE", "GENDARMERIE", "TAX"];
+      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
       beforeEach(async () => {
-        const [employer, state, police, gendarmerie, tax] =
+        const [employer, government, police, gendarmerie, tax] =
           await ethers.getSigners();
 
         const RegisterCertificates = await ethers.getContractFactory(
@@ -202,7 +201,7 @@ describe("RegisterCertificates", function () {
         const registerCertificates = await RegisterCertificates.deploy();
 
         _contract = registerCertificates;
-        _signers = [employer, state, police, gendarmerie, tax];
+        _signers = [employer, government, police, gendarmerie, tax];
         await Promise.all(
           _roles.map(async (role, i) => {
             await registerCertificates.grantRole(
@@ -211,16 +210,18 @@ describe("RegisterCertificates", function () {
             );
           })
         );
-        await registerCertificates.mintRegisterCertificate(
-          "AA123456789AA",
-          "001234-567-89",
-          "12346789",
-          "DZ132456"
-        );
+        await registerCertificates
+          .connect(employer)
+          .mintRegisterCertificate(
+            "AA123456789AA",
+            "001234-567-89",
+            "12346789",
+            "DZ132456"
+          );
       });
-      it("Should state can sign with ACCEPT", async () => {
+      it("Should government can sign with ACCEPT", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Others(1);
+          await _contract.getTemporaryRegisterCertificates_Government(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -238,7 +239,7 @@ describe("RegisterCertificates", function () {
             hre.ethers.utils.formatBytes32String(_roles[1]),
             signedMsg
           );
-        const tce = await _contract.getTemporaryRegisterCertificates_States(
+        const tce = await _contract.getTemporaryRegisterCertificates_Government(
           temporaryRegisterCertificate.registerCertificateId
         );
         const resultatSigner = tce.signers[1];
@@ -247,9 +248,9 @@ describe("RegisterCertificates", function () {
         expect(resultatStatus).to.equal(1);
         expect(tce.requireSigners).to.equal(4);
       });
-      it("Should state can sign with DECLINED", async () => {
+      it("Should government can sign with DECLINED", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Others(1);
+          await _contract.getTemporaryRegisterCertificates_Government(1);
         const hashed = HashDeclinedMessage(
           temporaryRegisterCertificate.registerCertificateId
         );
@@ -262,7 +263,7 @@ describe("RegisterCertificates", function () {
             hre.ethers.utils.formatBytes32String(_roles[1]),
             signedMsg
           );
-        const tce = await _contract.getTemporaryRegisterCertificates_States(
+        const tce = await _contract.getTemporaryRegisterCertificates_Government(
           temporaryRegisterCertificate.registerCertificateId
         );
         const resultatSigner = tce.signers[1];
@@ -271,9 +272,9 @@ describe("RegisterCertificates", function () {
           "DECLINED"
         );
       });
-      it("Should state can sign with wrong param", async () => {
+      it("Should government can sign with wrong param", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Others(1);
+          await _contract.getTemporaryRegisterCertificates_Government(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -291,7 +292,7 @@ describe("RegisterCertificates", function () {
             hre.ethers.utils.formatBytes32String(_roles[1]),
             signedMsg
           );
-        const tce = await _contract.getTemporaryRegisterCertificates_States(
+        const tce = await _contract.getTemporaryRegisterCertificates_Government(
           temporaryRegisterCertificate.registerCertificateId
         );
         const resultatSigner = tce.signers[1];
@@ -303,7 +304,7 @@ describe("RegisterCertificates", function () {
       });
       it("Should all participants can sign", async function () {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Others(1);
+          await _contract.getTemporaryRegisterCertificates_Government(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -331,7 +332,7 @@ describe("RegisterCertificates", function () {
               );
           })
         );
-        const tce = await _contract.getTemporaryRegisterCertificates_States(
+        const tce = await _contract.getTemporaryRegisterCertificates_Government(
           temporaryRegisterCertificate.registerCertificateId
         );
         expect(tce.status[0]).to.equal(1);
@@ -339,6 +340,268 @@ describe("RegisterCertificates", function () {
         expect(tce.status[2]).to.equal(1);
         expect(tce.status[3]).to.equal(1);
         expect(tce.status[4]).to.equal(1);
+      });
+    });
+    describe("Submit", function () {
+      let _contract;
+      let _signers;
+      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
+      beforeEach(async () => {
+        const [employer, government, police, gendarmerie, tax] =
+          await ethers.getSigners();
+
+        const RegisterCertificates = await ethers.getContractFactory(
+          "RegisterCertificates"
+        );
+        const registerCertificates = await RegisterCertificates.deploy();
+
+        _contract = registerCertificates;
+        _signers = [employer, government, police, gendarmerie, tax];
+        await Promise.all(
+          _roles.map(async (role, i) => {
+            await registerCertificates.grantRole(
+              hre.ethers.utils.formatBytes32String(role),
+              _signers[i].address
+            );
+          })
+        );
+        await registerCertificates
+          .connect(employer)
+          .mintRegisterCertificate(
+            "AA123456789AA",
+            "001234-567-89",
+            "12346789",
+            "DZ132456"
+          );
+      });
+      it("Should can create Register Certificate when All parts submite", async () => {
+        const temporaryRegisterCertificate =
+          await _contract.getTemporaryRegisterCertificates_Government(1);
+        const hashed = HashAcceptedMessage(
+          temporaryRegisterCertificate.registerCertificateId,
+          temporaryRegisterCertificate.vin,
+          temporaryRegisterCertificate.vrp,
+          temporaryRegisterCertificate.uri,
+          temporaryRegisterCertificate.oldOwner,
+          temporaryRegisterCertificate.newOwner
+        );
+        let messagesSigned = [];
+        await Promise.all(
+          _signers.map(async (signer) => {
+            const res = await SignMessage(hashed, signer);
+            messagesSigned.push(res);
+          })
+        );
+        await Promise.all(
+          messagesSigned.map(async (signedMsg, i) => {
+            await _contract
+              .connect(_signers[i])
+              .Siging(
+                temporaryRegisterCertificate.registerCertificateId,
+                i,
+                hre.ethers.utils.formatBytes32String(_roles[i]),
+                signedMsg
+              );
+          })
+        );
+        await _contract.SubmitRegisterCertificate(1);
+        const trc = await _contract.getTemporaryRegisterCertificates_Government(
+          1
+        );
+        const rc = await _contract.getRegisterCertificates_Government(1);
+        expect(trc.status[0]).to.equal(0);
+        expect(trc.status[1]).to.equal(0);
+        expect(trc.status[2]).to.equal(0);
+        expect(trc.status[3]).to.equal(0);
+        expect(trc.status[4]).to.equal(0);
+        expect(rc.status[0]).to.equal(1);
+        expect(rc.status[1]).to.equal(1);
+        expect(rc.status[2]).to.equal(1);
+        expect(rc.status[3]).to.equal(1);
+        expect(rc.status[4]).to.equal(1);
+      });
+      it("Shouldn't create a register certificate when one of the parts doesn't submit", async () => {
+        const temporaryRegisterCertificate =
+          await _contract.getTemporaryRegisterCertificates_Government(1);
+        const hashed = HashAcceptedMessage(
+          temporaryRegisterCertificate.registerCertificateId,
+          temporaryRegisterCertificate.vin,
+          temporaryRegisterCertificate.vrp,
+          temporaryRegisterCertificate.uri,
+          temporaryRegisterCertificate.oldOwner,
+          temporaryRegisterCertificate.newOwner
+        );
+        let messagesSigned = [];
+        const declinedhashe = HashDeclinedMessage(
+          temporaryRegisterCertificate.registerCertificateId
+        );
+        const signedMsg = await SignMessage(declinedhashe, _signers[2]);
+        await _contract
+          .connect(_signers[2])
+          .Siging(
+            temporaryRegisterCertificate.registerCertificateId,
+            2,
+            hre.ethers.utils.formatBytes32String(_roles[2]),
+            signedMsg
+          );
+        await Promise.all(
+          _signers.map(async (signer) => {
+            const res = await SignMessage(hashed, signer);
+            messagesSigned.push(res);
+          })
+        );
+        await Promise.all(
+          messagesSigned.map(async (signedMsg, i) => {
+            if (i != 2) {
+              await _contract
+                .connect(_signers[i])
+                .Siging(
+                  temporaryRegisterCertificate.registerCertificateId,
+                  i,
+                  hre.ethers.utils.formatBytes32String(_roles[i]),
+                  signedMsg
+                );
+            }
+          })
+        );
+        const trc = await _contract.getTemporaryRegisterCertificates_Government(
+          1
+        );
+        const rc = await _contract.getRegisterCertificates_Government(1);
+        await expect(_contract.SubmitRegisterCertificate(1)).to.be.revertedWith(
+          "The Police has declined"
+        );
+        expect(trc.status[0]).to.equal(1);
+        expect(trc.status[1]).to.equal(1);
+        expect(trc.status[2]).to.equal(2);
+        expect(trc.status[3]).to.equal(1);
+        expect(trc.status[4]).to.equal(1);
+        expect(rc.status[0]).to.equal(0);
+        expect(rc.status[1]).to.equal(0);
+        expect(rc.status[2]).to.equal(0);
+        expect(rc.status[3]).to.equal(0);
+        expect(rc.status[4]).to.equal(0);
+      });
+    });
+    describe("Transfer Register Certificate", function () {
+      let _contract;
+      let _signers;
+      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
+      const vin = "AA123456789AA";
+      const vrp = "001234-567-89";
+      const uri = "12346789";
+      const oldOwner = "DZ132456";
+      const newOwner = "DZ654321";
+      beforeEach(async () => {
+        const [employer, government, police, gendarmerie, tax] =
+          await ethers.getSigners();
+
+        const RegisterCertificates = await ethers.getContractFactory(
+          "RegisterCertificates"
+        );
+        const registerCertificates = await RegisterCertificates.deploy();
+
+        _contract = registerCertificates;
+        _signers = [employer, government, police, gendarmerie, tax];
+        await Promise.all(
+          _roles.map(async (role, i) => {
+            await registerCertificates.grantRole(
+              hre.ethers.utils.formatBytes32String(role),
+              _signers[i].address
+            );
+          })
+        );
+        await registerCertificates.mintRegisterCertificate(
+          vin,
+          vrp,
+          uri,
+          oldOwner
+        );
+        const temporaryRegisterCertificate =
+          await _contract.getTemporaryRegisterCertificates_Government(1);
+        const hashed = HashAcceptedMessage(
+          temporaryRegisterCertificate.registerCertificateId,
+          temporaryRegisterCertificate.vin,
+          temporaryRegisterCertificate.vrp,
+          temporaryRegisterCertificate.uri,
+          temporaryRegisterCertificate.oldOwner,
+          temporaryRegisterCertificate.newOwner
+        );
+        let messagesSigned = [];
+        await Promise.all(
+          _signers.map(async (signer) => {
+            const res = await SignMessage(hashed, signer);
+            messagesSigned.push(res);
+          })
+        );
+        await Promise.all(
+          messagesSigned.map(async (signedMsg, i) => {
+            await _contract
+              .connect(_signers[i])
+              .Siging(
+                temporaryRegisterCertificate.registerCertificateId,
+                i,
+                hre.ethers.utils.formatBytes32String(_roles[i]),
+                signedMsg
+              );
+          })
+        );
+        await _contract.SubmitRegisterCertificate(1);
+      });
+      it("Should can Transfer", async () => {
+        await _contract.transfer(1, oldOwner, newOwner);
+        const tce = await _contract.getTemporaryRegisterCertificates_Government(
+          1
+        );
+        expect(tce.registerCertificateId).to.equal(1);
+        expect(tce.vin).to.equal(vin);
+        expect(tce.vrp).to.equal(vrp);
+        expect(tce.uri).to.equal(uri);
+        expect(tce.oldOwner).to.equal(oldOwner);
+        expect(tce.newOwner).to.equal(newOwner);
+      });
+      it("Should can Sign", async () => {
+        await _contract.transfer(1, oldOwner, newOwner);
+        const temporaryRegisterCertificate =
+          await _contract.getTemporaryRegisterCertificates_Government(1);
+        const hashed = HashAcceptedMessage(
+          temporaryRegisterCertificate.registerCertificateId,
+          temporaryRegisterCertificate.vin,
+          temporaryRegisterCertificate.vrp,
+          temporaryRegisterCertificate.uri,
+          temporaryRegisterCertificate.oldOwner,
+          temporaryRegisterCertificate.newOwner
+        );
+        let messagesSigned = [];
+        await Promise.all(
+          _signers.map(async (signer) => {
+            const res = await SignMessage(hashed, signer);
+            messagesSigned.push(res);
+          })
+        );
+        await Promise.all(
+          messagesSigned.map(async (signedMsg, i) => {
+            await _contract
+              .connect(_signers[i])
+              .Siging(
+                temporaryRegisterCertificate.registerCertificateId,
+                i,
+                hre.ethers.utils.formatBytes32String(_roles[i]),
+                signedMsg
+              );
+          })
+        );
+        const trc = await _contract.getTemporaryRegisterCertificates_Government(
+          1
+        );
+        const rc = await _contract.getRegisterCertificates_Government(1);
+
+        await _contract.SubmitRegisterCertificate(1);
+        expect(rc.status[0]).to.equal(1);
+        expect(rc.status[1]).to.equal(1);
+        expect(rc.status[2]).to.equal(1);
+        expect(rc.status[3]).to.equal(1);
+        expect(rc.status[4]).to.equal(1);
       });
     });
   });
