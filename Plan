@@ -6,11 +6,10 @@ certificate :
                     VIN
                     Sginers[]:
                         0=> Employer
-                        1=> Original State
-                        2=> Target State
-                        3=> Police
-                        4=> Djondarm
-                        5=> Taxes
+                        1=>  State
+                        2=> Police
+                        3=> Djondarm
+                        4=> Taxes
                 Etat : 
                     Pending
                 Signers :
