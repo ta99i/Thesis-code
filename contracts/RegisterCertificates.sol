@@ -26,24 +26,28 @@ contract RegisterCertificates is AccessControl, VerifySignature {
     }
     struct TemporaryRegisterCertificate {
         uint registerCertificateId;
+        address employer;
         string vin;
         string vrp;
         string uri;
         string oldOwner;
         string newOwner;
+        address newState;
+        address oldState;
         uint8 requireSigners;
         bytes[5] signers;
         Status[5] status;
     }
     mapping(uint256 => TemporaryRegisterCertificate) _idToTemporaryRegisterCertificates;
 
-    mapping(uint256 => RegisterCertificate) _idToRegisterCertificates;
+    mapping(uint256 => RegisterCertificate) private _idToRegisterCertificates;
     mapping(string => uint256[]) _ownerToRegisterCertificate;
     //Vehicle Identification Number
     mapping(string => uint256) _vinToId;
     // Vehicle Registration Plates to id
     mapping(string => uint256) _vrpToId;
     mapping(uint256 => mapping(bytes32 => bool)) _roles;
+    mapping(address => mapping(address => bool)) _statsToEmployer;
     event Transfer(uint256 indexed registerCertificateId);
     event Submit(
         uint256 indexed registerCertificateId,
@@ -55,17 +59,46 @@ contract RegisterCertificates is AccessControl, VerifySignature {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _certificateIdCounter.increment();
         _roles[0][bytes32("EMPLOYER")] = true;
-        _roles[1][bytes32("GOVERNMENT")] = true;
+        _roles[1][bytes32("STATES")] = true;
         _roles[2][bytes32("POLICE")] = true;
         _roles[3][bytes32("GENDARMERIE")] = true;
         _roles[4][bytes32("TAX")] = true;
+    }
+
+    function getTemporaryRegisterCertificates(
+        uint256 id
+    ) external view returns (TemporaryRegisterCertificate memory) {
+        return _idToTemporaryRegisterCertificates[id];
+    }
+
+    function getRegisterCertificates(
+        uint256 id
+    ) external view returns (RegisterCertificate memory) {
+        return _idToRegisterCertificates[id];
     }
 
     function currentId() public view returns (uint256) {
         return _certificateIdCounter.current();
     }
 
+    function addEmployer(address employer) external {
+        require(
+            hasRole(bytes32("STATES"), msg.sender),
+            "Only state can add employers."
+        );
+        _statsToEmployer[msg.sender][employer] = true;
+    }
+
+    function deleteEmployer(address employer) external {
+        require(
+            hasRole(bytes32("STATES"), msg.sender),
+            "Only state can delete employers."
+        );
+        _statsToEmployer[msg.sender][employer] = false;
+    }
+
     function mintRegisterCertificate(
+        address state,
         string memory vin,
         string memory vrp,
         string memory uri,
@@ -76,76 +109,72 @@ contract RegisterCertificates is AccessControl, VerifySignature {
             "Only employers can add a new registration certificate."
         );
         require(
-            getvin(vin) == 0,
+            _statsToEmployer[state][msg.sender] == true,
+            "STATE OR EMPLOYER"
+        );
+        require(
+            _vinToId[vin] == 0,
             "The Vehicle Identification Number already registred"
         );
         require(
-            getvrp(vrp) == 0,
+            _vrpToId[vrp] == 0,
             "The Vehicle Registration Plates already registred"
         );
         uint256 certificatId = _certificateIdCounter.current();
         _certificateIdCounter.increment();
-        _idToTemporaryRegisterCertificates[
-            certificatId
-        ] = createTemporaryRegisterCertificate(
-            certificatId,
-            vin,
-            vrp,
-            uri,
-            owner,
-            owner
-        );
-        emit Transfer(certificatId);
+        _transfer(certificatId, vin, vrp, uri, owner, owner, state, state);
     }
 
     function transfer(
         uint256 certificatId,
         string memory oldOwner,
-        string memory newOwner
+        string memory newOwner,
+        address oldState,
+        address newState
     ) external {
         require(
             hasRole(bytes32("EMPLOYER"), msg.sender),
-            "Only employers can add a new registration certificate."
+            "Only employers can transfer registration certificate."
         );
-
-        RegisterCertificate memory ce = _idToRegisterCertificates[certificatId];
-        string memory ownerOfRegisterCertificate = _idToRegisterCertificates[
-            certificatId
-        ].owner;
         require(
-            keccak256(abi.encodePacked(ownerOfRegisterCertificate)) ==
-                keccak256(abi.encodePacked(oldOwner)),
-            "Only Owner can transfer RegisterCertificate"
+            _statsToEmployer[newState][msg.sender] == true,
+            "STATE OR EMPLOYER"
         );
-        //create new TemporaryRegisterCertificates
-        _idToTemporaryRegisterCertificates[
-            certificatId
-        ] = createTemporaryRegisterCertificate(
+        RegisterCertificate memory rc = _idToRegisterCertificates[certificatId];
+        _transfer(
             certificatId,
-            ce.vin,
-            ce.vrp,
-            ce.uri,
+            rc.vin,
+            rc.vrp,
+            rc.uri,
             oldOwner,
-            newOwner
+            newOwner,
+            oldState,
+            newState
         );
-        emit Transfer(certificatId);
     }
 
-    function createTemporaryRegisterCertificate(
+    function _transfer(
         uint256 certificatId,
         string memory vin,
         string memory vrp,
         string memory uri,
         string memory oldOwner,
-        string memory newOwner
-    ) internal pure returns (TemporaryRegisterCertificate memory) {
-        TemporaryRegisterCertificate memory TRC = TemporaryRegisterCertificate(
+        string memory newOwner,
+        address oldState,
+        address newState
+    ) internal {
+        _idToTemporaryRegisterCertificates[
+            certificatId
+        ] = TemporaryRegisterCertificate(
             certificatId,
+            msg.sender,
             vin,
             vrp,
             uri,
             oldOwner,
             newOwner,
+            oldState,
+            newState,
             5,
             [
                 bytes("NOTSIGNED"),
@@ -162,37 +191,7 @@ contract RegisterCertificates is AccessControl, VerifySignature {
                 Status.PENDING
             ]
         );
-        return TRC;
-    }
-
-    function getvin(string memory vin) public view returns (uint256) {
-        return _vinToId[vin];
-    }
-
-    function getvrp(string memory vrp) public view returns (uint256) {
-        return _vrpToId[vrp];
-    }
-
-    function getRegisterCertificates_Government(
-        uint256 id
-    ) external view returns (RegisterCertificate memory) {
-        return _idToRegisterCertificates[id];
-    }
-
-    function getTemporaryRegisterCertificates_Government(
-        uint256 id
-    ) external view returns (TemporaryRegisterCertificate memory) {
-        return _idToTemporaryRegisterCertificates[id];
-    }
-
-    function bytes32ToString(
-        bytes32 _bytes32
-    ) public pure returns (string memory) {
-        bytes memory bytesArray = new bytes(32);
-        for (uint256 i; i < 32; i++) {
-            bytesArray[i] = _bytes32[i];
-        }
-        return string(bytesArray);
+        emit Transfer(certificatId);
     }
 
     function SubmitRegisterCertificate(uint256 id) public {
@@ -254,31 +253,7 @@ contract RegisterCertificates is AccessControl, VerifySignature {
         _ownerToRegisterCertificate[tce.newOwner] = assetesOfNewOwner;
         _vinToId[tce.vin] = tce.registerCertificateId;
         _vrpToId[tce.vrp] = tce.registerCertificateId;
-        _idToTemporaryRegisterCertificates[
-            tce.registerCertificateId
-        ] = TemporaryRegisterCertificate(
-            0,
-            "",
-            "",
-            "",
-            "",
-            "",
-            0,
-            [
-                bytes("NOTSIGNED"),
-                bytes("NOTSIGNED"),
-                bytes("NOTSIGNED"),
-                bytes("NOTSIGNED"),
-                bytes("NOTSIGNED")
-            ],
-            [
-                Status.PENDING,
-                Status.PENDING,
-                Status.PENDING,
-                Status.PENDING,
-                Status.PENDING
-            ]
-        );
+        delete _idToTemporaryRegisterCertificates[tce.registerCertificateId];
         emit Submit(tce.registerCertificateId, tce.oldOwner, tce.newOwner);
     }
 
@@ -289,7 +264,7 @@ contract RegisterCertificates is AccessControl, VerifySignature {
         bytes memory signature
     ) external {
         require(_roles[idrole][role], "This role is not registred");
-        require(hasRole(role, msg.sender), bytes32ToString(role));
+        require(hasRole(role, msg.sender), "error on role");
         TemporaryRegisterCertificate
             storage tce = _idToTemporaryRegisterCertificates[id];
         require(

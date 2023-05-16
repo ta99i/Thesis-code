@@ -25,9 +25,10 @@ const SignMessage = async (hash, account) => {
   const signMessage = await account.signMessage(ethers.utils.arrayify(hash));
   return signMessage;
 };
+
 describe("RegisterCertificates", function () {
   async function deploy() {
-    const [government, employer, police, gendarmerie, tax] =
+    const [state, employer, police, gendarmerie, tax] =
       await ethers.getSigners();
 
     const RegisterCertificates = await ethers.getContractFactory(
@@ -37,7 +38,7 @@ describe("RegisterCertificates", function () {
 
     return {
       registerCertificates,
-      government,
+      state,
       employer,
       police,
       gendarmerie,
@@ -47,19 +48,19 @@ describe("RegisterCertificates", function () {
 
   describe("Deployment", function () {
     it("Should be Certificate Id Counter 1", async function () {
-      const { registerCertificates, government, employer } = await loadFixture(
+      const { registerCertificates, state, employer } = await loadFixture(
         deploy
       );
       let expected = 1;
       expect(await registerCertificates.currentId()).to.equal(expected);
     });
     it("Should be the deployer an admin ", async function () {
-      const { registerCertificates, government } = await loadFixture(deploy);
+      const { registerCertificates, state } = await loadFixture(deploy);
       let expected = true;
       expect(
         await registerCertificates.hasRole(
           hre.ethers.utils.hexZeroPad(ethers.utils.hexlify(0), 32),
-          government.address
+          state.address
         )
       ).to.equal(expected);
     });
@@ -69,37 +70,37 @@ describe("RegisterCertificates", function () {
       const {
         registerCertificates,
         employer,
-        government,
+        state,
         police,
         gendarmerie,
         tax,
       } = await loadFixture(deploy);
       await registerCertificates
-        .connect(government)
+        .connect(state)
         .grantRole(
           hre.ethers.utils.formatBytes32String("EMPLOYER"),
           employer.address
         );
       await registerCertificates
-        .connect(government)
+        .connect(state)
         .grantRole(
-          hre.ethers.utils.formatBytes32String("GOVERNMENT"),
-          government.address
+          hre.ethers.utils.formatBytes32String("STATES"),
+          state.address
         );
       await registerCertificates
-        .connect(government)
+        .connect(state)
         .grantRole(
           hre.ethers.utils.formatBytes32String("POLICE"),
           police.address
         );
       await registerCertificates
-        .connect(government)
+        .connect(state)
         .grantRole(
           hre.ethers.utils.formatBytes32String("GENDARMERIE"),
           gendarmerie.address
         );
       await registerCertificates
-        .connect(government)
+        .connect(state)
         .grantRole(hre.ethers.utils.formatBytes32String("TAX"), tax.address);
 
       expect(
@@ -110,8 +111,8 @@ describe("RegisterCertificates", function () {
       ).to.equal(true);
       expect(
         await registerCertificates.hasRole(
-          hre.ethers.utils.formatBytes32String("GOVERNMENT"),
-          government.address
+          hre.ethers.utils.formatBytes32String("STATES"),
+          state.address
         )
       ).to.equal(true);
       expect(
@@ -138,9 +139,9 @@ describe("RegisterCertificates", function () {
     describe("Hash", function () {
       let _contract;
       let _signers;
-      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
+      let _roles = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
       beforeEach(async () => {
-        const [employer, government, police, gendarmerie, tax] =
+        const [employer, state, police, gendarmerie, tax] =
           await ethers.getSigners();
 
         const RegisterCertificates = await ethers.getContractFactory(
@@ -149,7 +150,7 @@ describe("RegisterCertificates", function () {
         const registerCertificates = await RegisterCertificates.deploy();
 
         _contract = registerCertificates;
-        _signers = [employer, government, police, gendarmerie, tax];
+        _signers = [employer, state, police, gendarmerie, tax];
         await Promise.all(
           _roles.map(async (role, i) => {
             await registerCertificates.grantRole(
@@ -158,7 +159,10 @@ describe("RegisterCertificates", function () {
             );
           })
         );
+        await registerCertificates.connect(state).addEmployer(employer.address);
+
         await registerCertificates.mintRegisterCertificate(
+          state.address,
           "AA123456789AA",
           "001234-567-89",
           "12346789",
@@ -167,7 +171,7 @@ describe("RegisterCertificates", function () {
       });
       it("Should be the hash methode be the same on smart contract and js", async function () {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -190,9 +194,9 @@ describe("RegisterCertificates", function () {
     describe("Sign", function () {
       let _contract;
       let _signers;
-      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
+      let _roles = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
       beforeEach(async () => {
-        const [employer, government, police, gendarmerie, tax] =
+        const [employer, state, police, gendarmerie, tax] =
           await ethers.getSigners();
 
         const RegisterCertificates = await ethers.getContractFactory(
@@ -201,7 +205,7 @@ describe("RegisterCertificates", function () {
         const registerCertificates = await RegisterCertificates.deploy();
 
         _contract = registerCertificates;
-        _signers = [employer, government, police, gendarmerie, tax];
+        _signers = [employer, state, police, gendarmerie, tax];
         await Promise.all(
           _roles.map(async (role, i) => {
             await registerCertificates.grantRole(
@@ -210,18 +214,20 @@ describe("RegisterCertificates", function () {
             );
           })
         );
+        await registerCertificates.connect(state).addEmployer(employer.address);
         await registerCertificates
           .connect(employer)
           .mintRegisterCertificate(
+            state.address,
             "AA123456789AA",
             "001234-567-89",
             "12346789",
             "DZ132456"
           );
       });
-      it("Should government can sign with ACCEPT", async () => {
+      it("Should state can sign with ACCEPT", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -239,7 +245,7 @@ describe("RegisterCertificates", function () {
             hre.ethers.utils.formatBytes32String(_roles[1]),
             signedMsg
           );
-        const tce = await _contract.getTemporaryRegisterCertificates_Government(
+        const tce = await _contract.getTemporaryRegisterCertificates(
           temporaryRegisterCertificate.registerCertificateId
         );
         const resultatSigner = tce.signers[1];
@@ -248,9 +254,9 @@ describe("RegisterCertificates", function () {
         expect(resultatStatus).to.equal(1);
         expect(tce.requireSigners).to.equal(4);
       });
-      it("Should government can sign with DECLINED", async () => {
+      it("Should state can sign with DECLINED", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashDeclinedMessage(
           temporaryRegisterCertificate.registerCertificateId
         );
@@ -263,7 +269,7 @@ describe("RegisterCertificates", function () {
             hre.ethers.utils.formatBytes32String(_roles[1]),
             signedMsg
           );
-        const tce = await _contract.getTemporaryRegisterCertificates_Government(
+        const tce = await _contract.getTemporaryRegisterCertificates(
           temporaryRegisterCertificate.registerCertificateId
         );
         const resultatSigner = tce.signers[1];
@@ -272,9 +278,9 @@ describe("RegisterCertificates", function () {
           "DECLINED"
         );
       });
-      it("Should government can sign with wrong param", async () => {
+      it("Should state can sign with wrong param", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -292,7 +298,7 @@ describe("RegisterCertificates", function () {
             hre.ethers.utils.formatBytes32String(_roles[1]),
             signedMsg
           );
-        const tce = await _contract.getTemporaryRegisterCertificates_Government(
+        const tce = await _contract.getTemporaryRegisterCertificates(
           temporaryRegisterCertificate.registerCertificateId
         );
         const resultatSigner = tce.signers[1];
@@ -304,7 +310,7 @@ describe("RegisterCertificates", function () {
       });
       it("Should all participants can sign", async function () {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -332,7 +338,7 @@ describe("RegisterCertificates", function () {
               );
           })
         );
-        const tce = await _contract.getTemporaryRegisterCertificates_Government(
+        const tce = await _contract.getTemporaryRegisterCertificates(
           temporaryRegisterCertificate.registerCertificateId
         );
         expect(tce.status[0]).to.equal(1);
@@ -345,9 +351,9 @@ describe("RegisterCertificates", function () {
     describe("Submit", function () {
       let _contract;
       let _signers;
-      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
+      let _roles = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
       beforeEach(async () => {
-        const [employer, government, police, gendarmerie, tax] =
+        const [employer, state, police, gendarmerie, tax] =
           await ethers.getSigners();
 
         const RegisterCertificates = await ethers.getContractFactory(
@@ -356,7 +362,7 @@ describe("RegisterCertificates", function () {
         const registerCertificates = await RegisterCertificates.deploy();
 
         _contract = registerCertificates;
-        _signers = [employer, government, police, gendarmerie, tax];
+        _signers = [employer, state, police, gendarmerie, tax];
         await Promise.all(
           _roles.map(async (role, i) => {
             await registerCertificates.grantRole(
@@ -365,9 +371,11 @@ describe("RegisterCertificates", function () {
             );
           })
         );
+        await registerCertificates.connect(state).addEmployer(employer.address);
         await registerCertificates
           .connect(employer)
           .mintRegisterCertificate(
+            state.address,
             "AA123456789AA",
             "001234-567-89",
             "12346789",
@@ -376,7 +384,7 @@ describe("RegisterCertificates", function () {
       });
       it("Should can create Register Certificate when All parts submite", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -405,10 +413,8 @@ describe("RegisterCertificates", function () {
           })
         );
         await _contract.SubmitRegisterCertificate(1);
-        const trc = await _contract.getTemporaryRegisterCertificates_Government(
-          1
-        );
-        const rc = await _contract.getRegisterCertificates_Government(1);
+        const trc = await _contract.getTemporaryRegisterCertificates(1);
+        const rc = await _contract.getRegisterCertificates(1);
         expect(trc.status[0]).to.equal(0);
         expect(trc.status[1]).to.equal(0);
         expect(trc.status[2]).to.equal(0);
@@ -422,7 +428,7 @@ describe("RegisterCertificates", function () {
       });
       it("Shouldn't create a register certificate when one of the parts doesn't submit", async () => {
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -464,10 +470,8 @@ describe("RegisterCertificates", function () {
             }
           })
         );
-        const trc = await _contract.getTemporaryRegisterCertificates_Government(
-          1
-        );
-        const rc = await _contract.getRegisterCertificates_Government(1);
+        const trc = await _contract.getTemporaryRegisterCertificates(1);
+        const rc = await _contract.getRegisterCertificates(1);
         await expect(_contract.SubmitRegisterCertificate(1)).to.be.revertedWith(
           "The Police has declined"
         );
@@ -483,42 +487,84 @@ describe("RegisterCertificates", function () {
         expect(rc.status[4]).to.equal(0);
       });
     });
-    describe("Transfer Register Certificate", function () {
+    describe("Transfer Register Certificate", async function () {
       let _contract;
       let _signers;
-      let _roles = ["EMPLOYER", "GOVERNMENT", "POLICE", "GENDARMERIE", "TAX"];
+      let _signers1;
+      let _signers2;
+      let _roles = [
+        "",
+        "STATES",
+        "STATES",
+        "EMPLOYER",
+        "EMPLOYER",
+        "POLICE",
+        "GENDARMERIE",
+        "TAX",
+      ];
+      let _roles1 = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
+      let _roles2 = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
       const vin = "AA123456789AA";
       const vrp = "001234-567-89";
       const uri = "12346789";
       const oldOwner = "DZ132456";
       const newOwner = "DZ654321";
+      let newState;
+      let oldState;
       beforeEach(async () => {
-        const [employer, government, police, gendarmerie, tax] =
-          await ethers.getSigners();
+        const [
+          government,
+          state,
+          state2,
+          employer,
+          employer2,
+          police,
+          gendarmerie,
+          tax,
+        ] = await ethers.getSigners();
+
+        newState = state2.address;
+        oldState = state.address;
 
         const RegisterCertificates = await ethers.getContractFactory(
           "RegisterCertificates"
         );
-        const registerCertificates = await RegisterCertificates.deploy();
+        const registerCertificates = await RegisterCertificates.connect(
+          government
+        ).deploy();
 
         _contract = registerCertificates;
-        _signers = [employer, government, police, gendarmerie, tax];
+        _signers = [
+          government,
+          state,
+          state2,
+          employer,
+          employer2,
+          police,
+          gendarmerie,
+          tax,
+        ];
+        _signers1 = [employer, state, police, gendarmerie, tax];
+        _signers2 = [employer2, state2, police, gendarmerie, tax];
         await Promise.all(
           _roles.map(async (role, i) => {
-            await registerCertificates.grantRole(
-              hre.ethers.utils.formatBytes32String(role),
-              _signers[i].address
-            );
+            if (i != 0)
+              await registerCertificates.grantRole(
+                hre.ethers.utils.formatBytes32String(role),
+                _signers[i].address
+              );
           })
         );
-        await registerCertificates.mintRegisterCertificate(
-          vin,
-          vrp,
-          uri,
-          oldOwner
-        );
+        await registerCertificates.connect(state).addEmployer(employer.address);
+        await registerCertificates
+          .connect(state2)
+          .addEmployer(employer2.address);
+
+        await registerCertificates
+          .connect(employer)
+          .mintRegisterCertificate(state.address, vin, vrp, uri, oldOwner);
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -529,7 +575,7 @@ describe("RegisterCertificates", function () {
         );
         let messagesSigned = [];
         await Promise.all(
-          _signers.map(async (signer) => {
+          _signers1.map(async (signer) => {
             const res = await SignMessage(hashed, signer);
             messagesSigned.push(res);
           })
@@ -537,11 +583,11 @@ describe("RegisterCertificates", function () {
         await Promise.all(
           messagesSigned.map(async (signedMsg, i) => {
             await _contract
-              .connect(_signers[i])
+              .connect(_signers1[i])
               .Siging(
                 temporaryRegisterCertificate.registerCertificateId,
                 i,
-                hre.ethers.utils.formatBytes32String(_roles[i]),
+                hre.ethers.utils.formatBytes32String(_roles1[i]),
                 signedMsg
               );
           })
@@ -549,10 +595,10 @@ describe("RegisterCertificates", function () {
         await _contract.SubmitRegisterCertificate(1);
       });
       it("Should can Transfer", async () => {
-        await _contract.transfer(1, oldOwner, newOwner);
-        const tce = await _contract.getTemporaryRegisterCertificates_Government(
-          1
-        );
+        await _contract
+          .connect(_signers2[0])
+          .transfer(1, oldOwner, newOwner, oldState, newState);
+        const tce = await _contract.getTemporaryRegisterCertificates(1);
         expect(tce.registerCertificateId).to.equal(1);
         expect(tce.vin).to.equal(vin);
         expect(tce.vrp).to.equal(vrp);
@@ -561,9 +607,11 @@ describe("RegisterCertificates", function () {
         expect(tce.newOwner).to.equal(newOwner);
       });
       it("Should can Sign", async () => {
-        await _contract.transfer(1, oldOwner, newOwner);
+        await _contract
+          .connect(_signers2[0])
+          .transfer(1, oldOwner, newOwner, oldState, newState);
         const temporaryRegisterCertificate =
-          await _contract.getTemporaryRegisterCertificates_Government(1);
+          await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
@@ -574,7 +622,7 @@ describe("RegisterCertificates", function () {
         );
         let messagesSigned = [];
         await Promise.all(
-          _signers.map(async (signer) => {
+          _signers2.map(async (signer) => {
             const res = await SignMessage(hashed, signer);
             messagesSigned.push(res);
           })
@@ -582,19 +630,17 @@ describe("RegisterCertificates", function () {
         await Promise.all(
           messagesSigned.map(async (signedMsg, i) => {
             await _contract
-              .connect(_signers[i])
+              .connect(_signers2[i])
               .Siging(
                 temporaryRegisterCertificate.registerCertificateId,
                 i,
-                hre.ethers.utils.formatBytes32String(_roles[i]),
+                hre.ethers.utils.formatBytes32String(_roles2[i]),
                 signedMsg
               );
           })
         );
-        const trc = await _contract.getTemporaryRegisterCertificates_Government(
-          1
-        );
-        const rc = await _contract.getRegisterCertificates_Government(1);
+        const trc = await _contract.getTemporaryRegisterCertificates(1);
+        const rc = await _contract.getRegisterCertificates(1);
 
         await _contract.SubmitRegisterCertificate(1);
         expect(rc.status[0]).to.equal(1);
