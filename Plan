@@ -62,3 +62,5 @@ certificate :
         
     /// How The Sign will be 
         hash(hash(id) + hash(URI) + hash(VIN) + hash(old owner) + hash(newOwner))*Sign offchain
+
+--wallet.accounts 
