@@ -6,8 +6,13 @@ module.exports = {
   solidity: "0.8.18",
 
   networks: {
-    hardhat: {
-      allowUnlimitedContractSize: true,
+    mganache: { url: "http://172.25.240.1:7545/" },
+    localhost: {
+      mining: {
+        mempool: {
+          order: "fifo",
+        },
+      },
     },
   },
 };

@@ -1,14 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+//import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./VerifySignature.sol";
 
-contract RegisterCertificates is AccessControl, VerifySignature {
-    using Counters for Counters.Counter;
-    Counters.Counter private _certificateIdCounter;
+//import "./IVerifySignature.sol";
+interface IVerifySignature {
+    function verifyAccepted(
+        address _signer,
+        uint256 id,
+        string memory vin,
+        string memory vrp,
+        string memory uri,
+        string memory oldOwner,
+        string memory newOwner,
+        bytes memory signature
+    ) external pure returns (bool);
 
+    function verifyDeclined(
+        address _signer,
+        uint256 id,
+        bytes memory signature
+    ) external pure returns (bool);
+}
+
+contract RegisterCertificates is AccessControl {
+    //using Counters for Counters.Counter;
+    uint256 private _certificateIdCounter;
+    address _verifySignatureAddress;
     enum Status {
         PENDING,
         ACCEPTED,
@@ -38,7 +57,8 @@ contract RegisterCertificates is AccessControl, VerifySignature {
         bytes[5] signers;
         Status[5] status;
     }
-    mapping(uint256 => TemporaryRegisterCertificate) _idToTemporaryRegisterCertificates;
+    mapping(uint256 => TemporaryRegisterCertificate)
+        public _idToTemporaryRegisterCertificates;
 
     mapping(uint256 => RegisterCertificate) private _idToRegisterCertificates;
     mapping(string => uint256[]) _ownerToRegisterCertificate;
@@ -55,9 +75,10 @@ contract RegisterCertificates is AccessControl, VerifySignature {
         string indexed newOwner
     );
 
-    constructor() {
+    constructor(address verifySignatureAddress) {
+        _verifySignatureAddress = verifySignatureAddress;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _certificateIdCounter.increment();
+        _certificateIdCounter++;
         _roles[0][bytes32("EMPLOYER")] = true;
         _roles[1][bytes32("STATES")] = true;
         _roles[2][bytes32("POLICE")] = true;
@@ -78,7 +99,7 @@ contract RegisterCertificates is AccessControl, VerifySignature {
     }
 
     function currentId() public view returns (uint256) {
-        return _certificateIdCounter.current();
+        return _certificateIdCounter;
     }
 
     function addEmployer(address employer) external {
@@ -120,8 +141,8 @@ contract RegisterCertificates is AccessControl, VerifySignature {
             _vrpToId[vrp] == 0,
             "The Vehicle Registration Plates already registred"
         );
-        uint256 certificatId = _certificateIdCounter.current();
-        _certificateIdCounter.increment();
+        uint256 certificatId = _certificateIdCounter;
+        _certificateIdCounter++;
         _transfer(certificatId, vin, vrp, uri, owner, owner, state, state);
     }
 
@@ -262,7 +283,7 @@ contract RegisterCertificates is AccessControl, VerifySignature {
         uint256 idrole,
         bytes32 role,
         bytes memory signature
-    ) external {
+    ) public {
         require(_roles[idrole][role], "This role is not registred");
         require(hasRole(role, msg.sender), "error on role");
         TemporaryRegisterCertificate
@@ -273,7 +294,7 @@ contract RegisterCertificates is AccessControl, VerifySignature {
             "Already Signed"
         );
         if (
-            verifyAccepted(
+            IVerifySignature(_verifySignatureAddress).verifyAccepted(
                 msg.sender,
                 tce.registerCertificateId,
                 tce.vin,
@@ -284,10 +305,18 @@ contract RegisterCertificates is AccessControl, VerifySignature {
                 signature
             )
         ) {
+            console.log("accept");
             tce.status[idrole] = Status.ACCEPTED;
             tce.signers[idrole] = signature;
             tce.requireSigners--;
-        } else if (verifyDeclined(msg.sender, id, signature)) {
+        } else if (
+            IVerifySignature(_verifySignatureAddress).verifyDeclined(
+                msg.sender,
+                id,
+                signature
+            )
+        ) {
+            console.log("decline");
             tce.status[idrole] = Status.DECLINED;
             tce.signers[idrole] = bytes("DECLINED");
             tce.requireSigners--;

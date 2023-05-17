@@ -30,11 +30,17 @@ describe("RegisterCertificates", function () {
   async function deploy() {
     const [state, employer, police, gendarmerie, tax] =
       await ethers.getSigners();
-
+    const VerifySignature = await hre.ethers.getContractFactory(
+      "VerifySignature"
+    );
+    const verifySignature = await VerifySignature.deploy();
+    await verifySignature.deployed();
     const RegisterCertificates = await ethers.getContractFactory(
       "RegisterCertificates"
     );
-    const registerCertificates = await RegisterCertificates.deploy();
+    const registerCertificates = await RegisterCertificates.deploy(
+      verifySignature.address
+    );
 
     return {
       registerCertificates,
@@ -140,14 +146,21 @@ describe("RegisterCertificates", function () {
       let _contract;
       let _signers;
       let _roles = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
+      let verifySignature;
       beforeEach(async () => {
         const [employer, state, police, gendarmerie, tax] =
           await ethers.getSigners();
-
+        const VerifySignature = await hre.ethers.getContractFactory(
+          "VerifySignature"
+        );
+        verifySignature = await VerifySignature.deploy();
+        await verifySignature.deployed();
         const RegisterCertificates = await ethers.getContractFactory(
           "RegisterCertificates"
         );
-        const registerCertificates = await RegisterCertificates.deploy();
+        const registerCertificates = await RegisterCertificates.deploy(
+          verifySignature.address
+        );
 
         _contract = registerCertificates;
         _signers = [employer, state, police, gendarmerie, tax];
@@ -180,7 +193,7 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.oldOwner,
           temporaryRegisterCertificate.newOwner
         );
-        const contractSign = await _contract.getMessageHashAccepted(
+        const contractSign = await verifySignature.getMessageHashAccepted(
           temporaryRegisterCertificate.registerCertificateId,
           temporaryRegisterCertificate.vin,
           temporaryRegisterCertificate.vrp,
@@ -193,17 +206,24 @@ describe("RegisterCertificates", function () {
     });
     describe("Sign", function () {
       let _contract;
+      let verifySignature;
       let _signers;
       let _roles = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
       beforeEach(async () => {
         const [employer, state, police, gendarmerie, tax] =
           await ethers.getSigners();
 
+        const VerifySignature = await hre.ethers.getContractFactory(
+          "VerifySignature"
+        );
+        verifySignature = await VerifySignature.deploy();
+        await verifySignature.deployed();
         const RegisterCertificates = await ethers.getContractFactory(
           "RegisterCertificates"
         );
-        const registerCertificates = await RegisterCertificates.deploy();
-
+        const registerCertificates = await RegisterCertificates.deploy(
+          verifySignature.address
+        );
         _contract = registerCertificates;
         _signers = [employer, state, police, gendarmerie, tax];
         await Promise.all(
@@ -350,17 +370,25 @@ describe("RegisterCertificates", function () {
     });
     describe("Submit", function () {
       let _contract;
+      let verifySignature;
       let _signers;
       let _roles = ["EMPLOYER", "STATES", "POLICE", "GENDARMERIE", "TAX"];
+
       beforeEach(async () => {
         const [employer, state, police, gendarmerie, tax] =
           await ethers.getSigners();
 
+        const VerifySignature = await hre.ethers.getContractFactory(
+          "VerifySignature"
+        );
+        verifySignature = await VerifySignature.deploy();
+        await verifySignature.deployed();
         const RegisterCertificates = await ethers.getContractFactory(
           "RegisterCertificates"
         );
-        const registerCertificates = await RegisterCertificates.deploy();
-
+        const registerCertificates = await RegisterCertificates.deploy(
+          verifySignature.address
+        );
         _contract = registerCertificates;
         _signers = [employer, state, police, gendarmerie, tax];
         await Promise.all(
@@ -489,6 +517,7 @@ describe("RegisterCertificates", function () {
     });
     describe("Transfer Register Certificate", async function () {
       let _contract;
+      let verifySignature;
       let _signers;
       let _signers1;
       let _signers2;
@@ -526,12 +555,17 @@ describe("RegisterCertificates", function () {
         newState = state2.address;
         oldState = state.address;
 
+        const VerifySignature = await hre.ethers.getContractFactory(
+          "VerifySignature"
+        );
+        verifySignature = await VerifySignature.deploy();
+        await verifySignature.deployed();
         const RegisterCertificates = await ethers.getContractFactory(
           "RegisterCertificates"
         );
-        const registerCertificates = await RegisterCertificates.connect(
-          government
-        ).deploy();
+        const registerCertificates = await RegisterCertificates.deploy(
+          verifySignature.address
+        );
 
         _contract = registerCertificates;
         _signers = [

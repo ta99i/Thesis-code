@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-//ganache --chain.allowUnlimitedContractSize=true --wallet.mnemonic="money casual program think loop broccoli link hamster resemble pad put december"
+//ganache --wallet.mnemonic="money casual program think loop broccoli link hamster resemble pad put december"
 let _roles = [
   "",
   "STATES",
@@ -13,12 +13,17 @@ let _roles = [
 async function main() {
   //console.log(await hre.ethers.getSigners());
   const y = await hre.ethers.getSigners();
+  const VerifySignature = await hre.ethers.getContractFactory(
+    "VerifySignature"
+  );
+  const verifySignature = await VerifySignature.deploy();
+  await verifySignature.deployed();
   const RegisterCertificates = await hre.ethers.getContractFactory(
     "RegisterCertificates"
   );
-  const registerCertificates = await RegisterCertificates.connect(
-    y[0]
-  ).deploy();
+  const registerCertificates = await RegisterCertificates.connect(y[0]).deploy(
+    verifySignature.address
+  );
 
   await registerCertificates.deployed();
 
@@ -37,6 +42,8 @@ async function main() {
       }
     })
   ).then(async () => {
+    console.log(y[1].address);
+    console.log(y[3].address);
     await registerCertificates.connect(y[1]).addEmployer(y[3].address);
     await registerCertificates.connect(y[2]).addEmployer(y[4].address);
     console.log("Employers added to States");
