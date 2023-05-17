@@ -14,6 +14,8 @@ interface IVerifySignature {
         string memory uri,
         string memory oldOwner,
         string memory newOwner,
+        address oldState,
+        address newState,
         bytes memory signature
     ) external pure returns (bool);
 
@@ -40,6 +42,7 @@ contract RegisterCertificates is AccessControl {
         string vrp;
         string uri;
         string owner;
+        address state;
         bytes[5] signers;
         Status[5] status;
     }
@@ -51,8 +54,8 @@ contract RegisterCertificates is AccessControl {
         string uri;
         string oldOwner;
         string newOwner;
-        address newState;
         address oldState;
+        address newState;
         uint8 requireSigners;
         bytes[5] signers;
         Status[5] status;
@@ -84,6 +87,10 @@ contract RegisterCertificates is AccessControl {
         _roles[2][bytes32("POLICE")] = true;
         _roles[3][bytes32("GENDARMERIE")] = true;
         _roles[4][bytes32("TAX")] = true;
+    }
+
+    function getCurrentcertificateId() public view returns (uint256) {
+        return _certificateIdCounter;
     }
 
     function getTemporaryRegisterCertificates(
@@ -148,9 +155,7 @@ contract RegisterCertificates is AccessControl {
 
     function transfer(
         uint256 certificatId,
-        string memory oldOwner,
         string memory newOwner,
-        address oldState,
         address newState
     ) external {
         require(
@@ -167,9 +172,9 @@ contract RegisterCertificates is AccessControl {
             rc.vin,
             rc.vrp,
             rc.uri,
-            oldOwner,
+            rc.owner,
             newOwner,
-            oldState,
+            rc.state,
             newState
         );
     }
@@ -234,6 +239,7 @@ contract RegisterCertificates is AccessControl {
             tce.vrp,
             tce.uri,
             tce.newOwner,
+            tce.newState,
             tce.signers,
             tce.status
         );
@@ -293,6 +299,9 @@ contract RegisterCertificates is AccessControl {
                 keccak256(abi.encodePacked(bytes("NOTSIGNED"))),
             "Already Signed"
         );
+        if (idrole == 1) {
+            require(msg.sender == tce.newState, "Error on State");
+        }
         if (
             IVerifySignature(_verifySignatureAddress).verifyAccepted(
                 msg.sender,
@@ -302,10 +311,11 @@ contract RegisterCertificates is AccessControl {
                 tce.uri,
                 tce.oldOwner,
                 tce.newOwner,
+                tce.oldState,
+                tce.newState,
                 signature
             )
         ) {
-            console.log("accept");
             tce.status[idrole] = Status.ACCEPTED;
             tce.signers[idrole] = signature;
             tce.requireSigners--;
@@ -316,7 +326,6 @@ contract RegisterCertificates is AccessControl {
                 signature
             )
         ) {
-            console.log("decline");
             tce.status[idrole] = Status.DECLINED;
             tce.signers[idrole] = bytes("DECLINED");
             tce.requireSigners--;

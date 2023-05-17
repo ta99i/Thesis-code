@@ -22,10 +22,23 @@ contract VerifySignature {
         string memory vrp,
         string memory uri,
         string memory oldOwner,
-        string memory newOwner
+        string memory newOwner,
+        address oldState,
+        address newState
     ) public pure returns (bytes32) {
         return
-            keccak256(abi.encodePacked(id, vin, vrp, uri, oldOwner, newOwner));
+            keccak256(
+                abi.encodePacked(
+                    id,
+                    vin,
+                    vrp,
+                    uri,
+                    oldOwner,
+                    newOwner,
+                    oldState,
+                    newState
+                )
+            );
     }
 
     function getMessageHashDeclined(
@@ -66,6 +79,8 @@ contract VerifySignature {
         string memory uri,
         string memory oldOwner,
         string memory newOwner,
+        address oldState,
+        address newState,
         bytes memory signature
     ) public pure returns (bool) {
         bytes32 messageHash = getMessageHashAccepted(
@@ -74,7 +89,9 @@ contract VerifySignature {
             vrp,
             uri,
             oldOwner,
-            newOwner
+            newOwner,
+            oldState,
+            newState
         );
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 

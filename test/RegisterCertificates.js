@@ -5,10 +5,28 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const hre = require("hardhat");
-const HashAcceptedMessage = (id, vin, vrp, uri, oldOwner, newOwner) => {
+const HashAcceptedMessage = (
+  id,
+  vin,
+  vrp,
+  uri,
+  oldOwner,
+  newOwner,
+  oldState,
+  newState
+) => {
   const encodePackedpacked = ethers.utils.solidityPack(
-    ["uint256", "string", "string", "string", "string", "string"],
-    [id, vin, vrp, uri, oldOwner, newOwner]
+    [
+      "uint256",
+      "string",
+      "string",
+      "string",
+      "string",
+      "string",
+      "address",
+      "address",
+    ],
+    [id, vin, vrp, uri, oldOwner, newOwner, oldState, newState]
   );
   const hash = ethers.utils.keccak256(encodePackedpacked);
   return hash;
@@ -191,7 +209,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         const contractSign = await verifySignature.getMessageHashAccepted(
           temporaryRegisterCertificate.registerCertificateId,
@@ -199,7 +219,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         expect(hashed).to.equal(contractSign);
       });
@@ -254,7 +276,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         const signedMsg = await SignMessage(hashed, _signers[1]);
         await _contract
@@ -307,7 +331,11 @@ describe("RegisterCertificates", function () {
           "error",
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         const signedMsg = await SignMessage(hashed, _signers[1]);
         await _contract
@@ -337,7 +365,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         let messagesSigned = [];
         await Promise.all(
@@ -419,7 +449,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         let messagesSigned = [];
         await Promise.all(
@@ -463,7 +495,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         let messagesSigned = [];
         const declinedhashe = HashDeclinedMessage(
@@ -605,7 +639,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         let messagesSigned = [];
         await Promise.all(
@@ -629,9 +665,7 @@ describe("RegisterCertificates", function () {
         await _contract.SubmitRegisterCertificate(1);
       });
       it("Should can Transfer", async () => {
-        await _contract
-          .connect(_signers2[0])
-          .transfer(1, oldOwner, newOwner, oldState, newState);
+        await _contract.connect(_signers2[0]).transfer(1, newOwner, newState);
         const tce = await _contract.getTemporaryRegisterCertificates(1);
         expect(tce.registerCertificateId).to.equal(1);
         expect(tce.vin).to.equal(vin);
@@ -639,11 +673,11 @@ describe("RegisterCertificates", function () {
         expect(tce.uri).to.equal(uri);
         expect(tce.oldOwner).to.equal(oldOwner);
         expect(tce.newOwner).to.equal(newOwner);
+        expect(tce.oldState).to.equal(oldState);
+        expect(tce.newState).to.equal(newState);
       });
       it("Should can Sign", async () => {
-        await _contract
-          .connect(_signers2[0])
-          .transfer(1, oldOwner, newOwner, oldState, newState);
+        await _contract.connect(_signers2[0]).transfer(1, newOwner, newState);
         const temporaryRegisterCertificate =
           await _contract.getTemporaryRegisterCertificates(1);
         const hashed = HashAcceptedMessage(
@@ -652,7 +686,9 @@ describe("RegisterCertificates", function () {
           temporaryRegisterCertificate.vrp,
           temporaryRegisterCertificate.uri,
           temporaryRegisterCertificate.oldOwner,
-          temporaryRegisterCertificate.newOwner
+          temporaryRegisterCertificate.newOwner,
+          temporaryRegisterCertificate.oldState,
+          temporaryRegisterCertificate.newState
         );
         let messagesSigned = [];
         await Promise.all(
