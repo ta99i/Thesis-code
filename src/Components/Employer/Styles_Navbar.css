@@ -1,0 +1,7 @@
+a{background: #eef4ef;
+    border-radius: 5px;
+    box-shadow: 1px 1px 1px #ace1bc;
+}
+a.active{
+    background-color: #00f94b;
+}

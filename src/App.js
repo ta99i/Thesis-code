@@ -1,23 +1,34 @@
-import logo from './logo.svg';
+// import {  Routes, Route,  Link } from "react-router-dom";
 import './App.css';
+import Navbar from "./Components/Employer/Navbar";
 
+
+import { ConnectButton, Loading } from "@web3uikit/web3";
+import { useMoralis } from "react-moralis";
+import { useEffect } from "react";
+import Home from './Home';
+import RigisterCitizen from './Components/Gandarme/RigisterCitizen';
+import Register_rs from './Components/Gandarme/Register_rs';
+import Register from './Components/Employer/Register';
+import Transfer from './Components/Employer/Transfer';
+
+import {  Routes, Route,  Link } from "react-router-dom";
 function App() {
+  const {isWeb3Enabled } = useMoralis();
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+     { !isWeb3Enabled &&
+        
+        <Home/>      
+      }
+
+      <Routes >
+          <Route  path="/"  element={<Register/>} />
+          <Route  path="/empl/register" element={<Register />} />
+          <Route  path="/empl/transfer" element={<Transfer />} />
+          <Route  path="/Gn/register_citizen" element={<RigisterCitizen />} />
+          <Route  path="/Gn/register_rs" element={<Register_rs />} />
+      </Routes> 
     </div>
   );
 }
