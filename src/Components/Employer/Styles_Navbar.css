@@ -5,3 +5,9 @@ a{background: #eef4ef;
 a.active{
     background-color: #00f94b;
 }
+.box-shadow{
+    box-shadow: 1px -4px 6px 2px #32be3f;
+}
+.width{
+    min-width: 500px;
+}

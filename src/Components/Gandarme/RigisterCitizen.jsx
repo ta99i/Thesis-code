@@ -11,7 +11,7 @@ function RigisterCitizen() {
     const [stute, setStute] = useState(true);
     const { register, handleSubmit, errors, reset } = useForm();
     const handleRegistration =async (data) => {
-      console.log(data);
+      data.status='true'
       const res = await axios.post("http://localhost:4000/gendarm", data, {
         maxBodyLength: "Infinity",
       });
@@ -22,7 +22,7 @@ function RigisterCitizen() {
         <GNavbar/>
     <div className="flex items-center justify-center bg-green  px-3 py-6">
     <form className="form-width mt-5 p-4 bg-slate-200 " onSubmit={handleSubmit(handleRegistration)} >
-        <div><h1 className="text-3xl font-bold underline p-3"> Register Citizen</h1></div>
+        <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Register Citizen</h1></div>
     <div className="flex justify-around items-center font-bold mt-2">
         <label className="w-1/4">ID</label>
         <input className="leading-8 outline-none p-1 pl-2 border-color" name="ID" {...register('ID')} required/>
