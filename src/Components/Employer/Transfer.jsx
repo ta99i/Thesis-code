@@ -1,17 +1,24 @@
 import React from 'react'
+import { ethers } from "ethers"
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useWeb3Contract } from "react-moralis";
 import contractAddresses from "../../constants/contractAddresses.json";
 import abi from "../../constants/abi.json";
 import Navbar from './Navbar';
+
 function Transfer() {
   const [stute, setStute] = useState(true);
   const { register, handleSubmit, errors, reset } = useForm();
 const [form,setform]=  useState({id:"",oo:"",no:""})
   const addressOfContract =contractAddresses[1][0]
-  const handleRegistration = (data) => {
+  const handleRegistration =async (data) => {
     console.log(data);
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const signer = provider.getSigner()
+    const contract = new ethers.Contract(addressOfContract, abi,signer)
+    const mint = await contract.transfer(data.id,data.oldOwner,data.newOwner)
+    console.log(mint)
     form.id=data.id
     form.oo=data.oldOwner
     form.no=data.newOwner

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ethers } from "ethers"
 import axios from "axios"
 import { useForm } from "react-hook-form";
 import { create } from "ipfs-http-client";
@@ -9,15 +10,24 @@ import abi from "../../constants/abi.json";
 import Navbar from "./Navbar";
 import img from './img.png'
 import { useWeb3Contract } from "react-moralis";
+
 function Register() {
   const [selectedFile, setSelectedFile] = useState();
   const [hash, setHash] = useState('');
   const [stute, setStute] = useState(true);
   const addressOfContract =contractAddresses[1][0]
   const { register, handleSubmit, errors, reset } = useForm();
-  const handleRegistration = (data) => {
+  const handleRegistration = async (data) => {
     console.log(data);
     console.log(hash)
+    const provider =new ethers.providers.Web3Provider(window.ethereum)
+    await provider.send('eth_requestAccounts', [])
+    const signer = provider.getSigner()
+    const contract = new ethers.Contract(addressOfContract,abi, signer);
+    const mint = await contract.mintRegisterCertificate(data.States,data.vin,data.vrp,hash,data.owner).then((response)=>{
+      console.log(response)
+    }).catch((err)=>console.log(err))
+    
     setHash('')
  
     reset()
@@ -93,6 +103,10 @@ function Register() {
     <div className="flex items-center justify-center bg-green   px-3 py-6">
     <form className="form-width mt-5 p-4 bg-slate-200 " onSubmit={handleSubmit(handleRegistration)} >
         <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Register Grey Cart</h1></div>
+        <div className="flex justify-around items-center font-bold mt-2">
+            <label className="w-1/4">States</label>
+            <input className="leading-8 outline-none p-1 pl-2 border-color" name="States" {...register('States')} />
+        </div>
     <div className="flex justify-around items-center font-bold mt-2">
         <label className="w-1/4">Vin</label>
         <input className="leading-8 outline-none p-1 pl-2 border-color" name="vin" {...register('vin')} required/>

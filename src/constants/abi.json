@@ -1,6 +1,12 @@
 [
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "verifySignatureAddress",
+        "type": "address"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -174,60 +180,22 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_bytes32",
-        "type": "bytes32"
-      }
-    ],
-    "name": "bytes32ToString",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "currentId",
-    "outputs": [
-      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_messageHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getEthSignedMessageHash",
+    "name": "_idToTemporaryRegisterCertificates",
     "outputs": [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
-        "name": "id",
+        "name": "registerCertificateId",
         "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "employer",
+        "type": "address"
       },
       {
         "internalType": "string",
@@ -253,41 +221,76 @@
         "internalType": "string",
         "name": "newOwner",
         "type": "string"
-      }
-    ],
-    "name": "getMessageHashAccepted",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
       },
       {
-        "internalType": "string",
-        "name": "message",
-        "type": "string"
+        "internalType": "address",
+        "name": "oldState",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "newState",
+        "type": "address"
+      },
+      {
+        "internalType": "uint8",
+        "name": "requireSigners",
+        "type": "uint8"
       }
     ],
-    "name": "getMessageHashDeclined",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "employer",
+        "type": "address"
+      }
+    ],
+    "name": "addEmployer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "currentId",
     "outputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "uint256",
         "name": "",
-        "type": "bytes32"
+        "type": "uint256"
       }
     ],
-    "stateMutability": "pure",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "employer",
+        "type": "address"
+      }
+    ],
+    "name": "deleteEmployer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getCurrentcertificateId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -298,7 +301,7 @@
         "type": "uint256"
       }
     ],
-    "name": "getRegisterCertificates_Government",
+    "name": "getRegisterCertificates",
     "outputs": [
       {
         "components": [
@@ -326,6 +329,11 @@
             "internalType": "string",
             "name": "owner",
             "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "state",
+            "type": "address"
           },
           {
             "internalType": "bytes[5]",
@@ -373,7 +381,7 @@
         "type": "uint256"
       }
     ],
-    "name": "getTemporaryRegisterCertificates_Government",
+    "name": "getTemporaryRegisterCertificates",
     "outputs": [
       {
         "components": [
@@ -381,6 +389,11 @@
             "internalType": "uint256",
             "name": "registerCertificateId",
             "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "employer",
+            "type": "address"
           },
           {
             "internalType": "string",
@@ -408,6 +421,16 @@
             "type": "string"
           },
           {
+            "internalType": "address",
+            "name": "oldState",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "newState",
+            "type": "address"
+          },
+          {
             "internalType": "uint8",
             "name": "requireSigners",
             "type": "uint8"
@@ -426,44 +449,6 @@
         "internalType": "struct RegisterCertificates.TemporaryRegisterCertificate",
         "name": "",
         "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "vin",
-        "type": "string"
-      }
-    ],
-    "name": "getvin",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "vrp",
-        "type": "string"
-      }
-    ],
-    "name": "getvrp",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -514,6 +499,11 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "state",
+        "type": "address"
+      },
+      {
         "internalType": "string",
         "name": "vin",
         "type": "string"
@@ -537,30 +527,6 @@
     "name": "mintRegisterCertificate",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_ethSignedMessageHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_signature",
-        "type": "bytes"
-      }
-    ],
-    "name": "recoverSigner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -602,35 +568,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes",
-        "name": "sig",
-        "type": "bytes"
-      }
-    ],
-    "name": "splitSignature",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "r",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "s",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint8",
-        "name": "v",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -656,101 +593,18 @@
       },
       {
         "internalType": "string",
-        "name": "oldOwner",
+        "name": "newOwner",
         "type": "string"
       },
       {
-        "internalType": "string",
-        "name": "newOwner",
-        "type": "string"
+        "internalType": "address",
+        "name": "newState",
+        "type": "address"
       }
     ],
     "name": "transfer",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_signer",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "vin",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "vrp",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "uri",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "oldOwner",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "newOwner",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes",
-        "name": "signature",
-        "type": "bytes"
-      }
-    ],
-    "name": "verifyAccepted",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_signer",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes",
-        "name": "signature",
-        "type": "bytes"
-      }
-    ],
-    "name": "verifyDeclined",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "pure",
     "type": "function"
   }
 ]
