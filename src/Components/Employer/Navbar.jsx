@@ -3,19 +3,22 @@ import {Link } from "react-router-dom";
 import './Styles_Navbar.css'
 
 function Navbar() {
- const  [active,setActive]=useState(1)
+ 
   return (
-    <div className='box-shadow'>
+    <div className='box-shadow' style={{backgroundColor:'rgb(102 231 114)'}}>
         <nav className='flex justify-around items-center font-bold text-lg p-2'>
-            <div className='text-2xl'>
+            <div className='text-2xl text-white font-bold'>
             COMMUNE
             </div>
            <div className='flex justify-evenly  width'>
            <div className="flex">
-                <Link className={`p-2 text-lg font-bold uppercase ${active===1?"active":"" }`} to='/empl/register'onClick={()=>setActive(1)} >register </Link>
+                <Link className={`mr-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded uppercase `} to='/empl/register' >register </Link>
             </div>
             <div className="flex">
-                <Link className={`p-2 text-lg font-bold uppercase ${active===2?"active":"" }`} to='/empl/transfer' onClick={()=>setActive(2)} >transfer </Link>
+                <Link className={`mr-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded uppercase `} to='/empl/transfer'  >transfer </Link>
+            </div>
+            <div className="flex">
+                <Link className={`mr-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded uppercase `} to='/empl/search'  >search </Link>
             </div>
            </div>
         </nav>

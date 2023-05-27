@@ -1,20 +1,19 @@
 
-import React, { useState } from "react";
+import React from "react";
 import axios from "axios"
 import { useForm } from "react-hook-form";
 import "../Employer/styles_Form.css";
 import GNavbar from "./GNavbar";
 
 function Register_rs() {
-  
-    const [stute, setStute] = useState(true);
-    const { register, handleSubmit, errors, reset } = useForm();
+    const { register, handleSubmit, reset } = useForm();
     const handleRegistration =async (data) => {
       data.status='true'
       console.log(data)
-      const res = await axios.post("http://localhost:4000/gendarmRS", data, {
+       await axios.post("http://localhost:4000/gendarmRS", data, {
         maxBodyLength: "Infinity",
       });
+
       reset()
     }
   return (
@@ -22,11 +21,11 @@ function Register_rs() {
          <div>
         <GNavbar/>
     <div className="flex items-center justify-center bg-green  px-3 py-6">
-    <form className="form-width mt-5 p-4 bg-slate-200 " onSubmit={handleSubmit(handleRegistration)} >
+    <form className="form-width mt-5 p-4 bg-slate-200 form_box3 " onSubmit={handleSubmit(handleRegistration)} >
         <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Register RS</h1></div>
         <div className="flex justify-around items-center font-bold mt-2">
         <label className="w-1/4">ID</label>
-        <input className="leading-8 outline-none p-1 pl-2 border-color" name="From" {...register('ID')} />
+        <input className="leading-8 outline-none p-1 pl-2 border-color" name="id" {...register('ID')} />
       </div>
     <div className="flex justify-around items-center font-bold mt-2">
         <label className="w-1/4">From</label>
@@ -42,7 +41,7 @@ function Register_rs() {
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
       <label className="w-1/4">Vin</label>
-      <input className="leading-8 outline-none p-1 pl-2 border-color" name="age" {...register('vin')} />
+      <input className="leading-8 outline-none p-1 pl-2 border-color" name="vin" {...register('vin')} />
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
       <label className="w-1/4">Model</label>
@@ -104,7 +103,7 @@ function Register_rs() {
       <label className="w-1/4">Address</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Address" {...register('Address')} />
     </div>
-      <button className="font-bold text-lg mt-5 p-4 bg-gray-700 text-slate-200 w-60 rounded-full border-solid"  >register</button>
+      <button className="font-bold text-lg mt-5 p-4 bg-green-900 text-slate-200 w-60 rounded-full border-solid"  >register</button>
     </form>
     </div>
     </div>

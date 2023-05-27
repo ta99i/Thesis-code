@@ -1,20 +1,20 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {  Link } from "react-router-dom";
 import '../Employer/Styles_Navbar.css'
 
 function TNavbar() {
- const  [active,setActive]=useState(1)
+
   return (
-    <div className='box-shadow'>
+    <div className='box-shadow' style={{background: 'linear-gradient(167deg, #1d5d90, #e3e3e3)'}}>
         <nav className='flex justify-around items-center font-bold text-lg p-4'>
            
-           <div  className='text-2xl'>TAX</div>
+           <div  className='text-2xl text-white'>TAX</div>
            <div className='flex'>
            <div className="mr-4">
-                <Link className={`p-3 text-lg font-bold uppercase ${active===2?"active":"" }`} to='/Tx/register_citizen' onClick={()=>setActive(2)} >register Citizen </Link>
+                <Link className={`mr-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded uppercase `} to='/Tx/register_citizen'  >register Citizen </Link>
             </div>
             <div className="">
-                <Link className={`p-3 text-lg font-bold uppercase ${active===2?"active":"" }`} to='/Tx/update_cit' onClick={()=>setActive(2)} >update Citizen </Link>
+                <Link className={`mr-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded uppercase`} to='/Tx/update_cit' >update Citizen </Link>
             </div>
            </div>
         </nav>

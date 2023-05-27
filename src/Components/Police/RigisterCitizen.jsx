@@ -18,7 +18,7 @@ function RigisterCitizen_pl() {
     <div>
         <PNavbar/>
     <div className="flex items-center justify-center bg-green  px-3 py-6">
-    <form className="form-width mt-5 p-4 bg-slate-200 " onSubmit={handleSubmit(handleRegistration)} >
+    <form className="form-width mt-5 p-4 bg-slate-200 form_box4" onSubmit={handleSubmit(handleRegistration)} >
         <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Register Citizen</h1></div>
     <div className="flex justify-around items-center font-bold mt-2">
         <label className="w-1/4">ID</label>
@@ -37,7 +37,7 @@ function RigisterCitizen_pl() {
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Age" {...register('Age')} required/>
     </div>
     
-      <button className="font-bold text-lg mt-5 p-4 bg-gray-700 text-slate-200 w-60 rounded-full border-solid"  >register</button>
+      <button className="font-bold text-lg mt-5 p-4 bg-gray-900 text-slate-200 w-60 rounded-full border-solid"  >register</button>
     </form>
     </div>
     </div>

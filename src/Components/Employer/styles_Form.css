@@ -12,7 +12,21 @@
 }
 .form-width{
     width: 500px;
-    box-shadow: 0px -1px 10px 2px #32be5da8;
     border-radius: 20px;
 
+}
+.form_box1{
+    box-shadow: 0px 0px 8px 2px #66e772;
+}
+.form_box2{
+    box-shadow:  0px 0px 8px 2px #1f2937;;
+}
+.form_box3{
+    box-shadow:  0px 0px 8px 2px #0e2e11;
+}
+.form_box4{
+    box-shadow:  0px 0px 8px 2px #333333;
+}
+.form_box5{
+    box-shadow:  0px 0px 8px 2px #38709c;
 }

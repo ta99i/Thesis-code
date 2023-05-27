@@ -36,14 +36,14 @@ function Update_citizens_g() {
     <div>
          <GNavbar/>
         <div className="flex items-center justify-center bg-green  px-3 py-6">
-        <form className="form-width mt-5 p-4 bg-slate-200 " onSubmit={handleSubmit(handleRegistration)} >
-            <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Recharch Citizen</h1></div>
+        <form className="form-width mt-5 p-4 bg-slate-200 form_box3" onSubmit={handleSubmit(handleRegistration)} >
+            <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Search Citizen</h1></div>
         <div className="flex justify-around items-center font-bold mt-2">
             <label className="w-1/4">ID</label>
             <input className="leading-8 outline-none p-1 pl-2 border-color" name="ID" {...register('ID')} required/>
         </div>
         
-        <button className="font-bold text-lg mt-5 p-4 bg-gray-700 text-slate-200 w-60 rounded-full border-solid"  >recharch</button>
+        <button className="font-bold text-lg mt-5 p-4 bg-green-900 text-slate-200 w-60 rounded-full border-solid"  >search</button>
         </form>
         </div>
         <div>
@@ -55,7 +55,7 @@ function Update_citizens_g() {
                       
                      <p><label className="font-bold" htmlFor="">Age: </label> <span>{el.Age}</span></p>
                       { ((el.status === 'true') )?(
-                      <button className="font-bold text-lg p-2 bg-green-700 text-slate-200 w-60 rounded-full border-solid" style={{display:`${id===el._id?"none":""}`}}  onClick={()=>handelUpdate(el._id)}>Approve</button>
+                      <button className="font-bold text-lg p-2 bg-green-900 text-slate-200 w-60 rounded-full border-solid" style={{display:`${id===el._id?"none":""}`}}  onClick={()=>handelUpdate(el._id)}>Approve</button>
                       ):""}
                     </div>
                 ))

@@ -3,27 +3,26 @@ import { Link } from "react-router-dom";
 import '../Employer/Styles_Navbar.css'
 
 function GNavbar() {
- const  [active,setActive]=useState(1)
+
   return (
-    <div className='box-shadow'>
-        <nav className='flex justify-around items-center font-bold text-lg p-4'>
-            <div className='text-2xl'>GANDARME</div>
+    <div className='box-shadow' style={{background: 'linear-gradient(167deg, #409748ad, #0e2e11)'}}>
+        <nav className='flex justify-between items-center font-bold text-lg p-4'>
+            <div className='text-2xl text-white'>GANDARME</div>
             <div className='flex '>
             <div className="mr-3">
-                <Link className={`p-2 text-lg font-bold uppercase ${active===1?"active":"" }`} to='/Gn/register_rs'onClick={()=>setActive(1)} >register RS </Link>
+                <Link className={`mr-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded uppercase `} to='/Gn/register_rs' >register RS </Link>
             </div>
             <div className="mr-3">
-                <Link className={`p-2 text-lg font-bold uppercase ${active===2?"active":"" }`} to='/Gn/register_citizen' onClick={()=>setActive(2)} >register Citizen </Link>
+                <Link className={`mr-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded uppercase`} to='/Gn/register_citizen'  >register Citizen </Link>
             </div>
             <div className="mr-3">
-                <Link className={`p-2 text-lg font-bold uppercase ${active===2?"active":"" }`} to='/Gn/update_cit' onClick={()=>setActive(2)} >update Citizen </Link>
+                <Link className={`mr-2 bg-red-400 hover:bg-red-600 text-white font-bold py-2 px-4 rounded uppercase `} to='/Gn/update_cit'  >update Citizen </Link>
             </div>
             <div className="">
-                <Link className={`p-2 text-lg font-bold uppercase ${active===2?"active":"" }`} to='/Gn/update_rs' onClick={()=>setActive(2)} >update RS </Link>
+                <Link className={`mr-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded uppercase `} to='/Gn/update_rs'  >update RS </Link>
             </div>
             </div>
         </nav>
-    
     </div>
   )
 }
