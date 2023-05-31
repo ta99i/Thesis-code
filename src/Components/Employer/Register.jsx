@@ -7,8 +7,6 @@ import { useEffect } from "react";
 import contractAddresses from "../../constants/contractAddresses.json";
 import abi from "../../constants/abi.json";
 import Navbar from "./Navbar";
-import img from './img.png'
-
 
 function Register() {
   const [selectedFile, setSelectedFile] = useState([]);
@@ -62,92 +60,90 @@ function Register() {
     <form className="form-width mt-5 p-4 bg-slate-200 form_box1" onSubmit={handleSubmit(handleRegistration)} >
         <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Register Grey Cart</h1></div>
         <div className="flex justify-around items-center font-bold mt-2">
-            <label className="w-1/4">States</label>
+            <label className="w-1/4 text-left">States</label>
             <input className="leading-8 outline-none p-1 pl-2 border-color" name="States" {...register('States')} required />
         </div>
     <div className="flex justify-around items-center font-bold mt-2">
-        <label className="w-1/4">Vin</label>
+        <label className="w-1/4 text-left">Vin</label>
         <input className="leading-8 outline-none p-1 pl-2 border-color" name="vin" {...register('vin')} required/>
       </div>
       <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Vrp</label>
+      <label className="w-1/4 text-left">Vrp</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="vrp" {...register('vrp')} required/>
     </div>
       <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Owner</label>
+      <label className="w-1/4 text-left">Owner</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="owner" {...register('owner')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-        <label className="w-1/4">From</label>
+        <label className="w-1/4 text-left">From</label>
         <input className="leading-8 outline-none p-1 pl-2 border-color" name="From" {...register('From')} required/>
       </div>
    
       <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Year of first use</label>
+      <label className="w-1/4 text-left">Year of first use</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Year of first use" {...register('Year of first use')} required/>
     </div>
  
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Model</label>
+      <label className="w-1/4 text-left">Model</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Model" {...register('Model')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Brand</label>
+      <label className="w-1/4 text-left">Brand</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Brand" {...register('Brand')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Type</label>
+      <label className="w-1/4 text-left">Type</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Type" {...register('Type')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Body</label>
+      <label className="w-1/4 text-left">Body</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Body" {...register('Body')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Energy</label>
+      <label className="w-1/4 text-left">Energy</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Energy" {...register('Energy')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Power</label>
+      <label className="w-1/4 text-left">Power</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Power" {...register('Power')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Number of places</label>
+      <label className="w-1/4 text-left">Number of places</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Number_of_places" {...register('Number_of_places')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">D.O.R Card</label>
-      <input type="date" className="leading-8 outline-none p-1 pl-2 border-color" name="Date_of_Register_Card" {...register('Date_of_Register_Card')} required/>
+      <label className="w-1/4 text-left">D.O.R Card</label>
+      <input type="date" className="leading-8 outline-none p-1 pl-2 border-color w-52" name="Date_of_Register_Card" {...register('Date_of_Register_Card')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">City</label>
+      <label className="w-1/4 text-left">City</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="City" {...register('City')} required/>
     </div>
    
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Owner First Name</label>
+      <label className="w-1/4 text-left">Owner First Name</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Owner_First_Name" {...register('Owner_First_Name')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Owner Second Name</label>
+      <label className="w-1/4 text-left">Owner Second Name</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Owner_Second_Name" {...register('Owner_Second_Name')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Birth Date</label>
-      <input type='date' className="leading-8 outline-none p-1 pl-2 border-color" name="Birth_Day" {...register('Birth_Day')} required/>
+      <label className="w-1/4 text-left">Birth Date</label>
+      <input type='date' className="leading-8 outline-none p-1 pl-2 border-color w-52" name="Birth_Day" {...register('Birth_Day')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Birth Place</label>
+      <label className="w-1/4 text-left">Birth Place</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Birth_Place" {...register('Birth_Place')} required/>
     </div>
     <div className="flex justify-around items-center font-bold mt-2">
-      <label className="w-1/4">Address</label>
+      <label className="w-1/4 text-left">Address</label>
       <input className="leading-8 outline-none p-1 pl-2 border-color" name="Address" {...register('Address')} required/>
     </div>
     <div className="flex items-center justify-center mt-3">
-    <div className="shrink-0">
-    <img className="h-12 w-12 object-cover rounded-full m-5" src={img} alt="Current files" required/>
-  </div>
+  
   <label className="block">
    <span className="sr-only">Choose files</span>
     <input type="file" onChange={changeHandler} multiple className="block w-full text-sm text-slate-500

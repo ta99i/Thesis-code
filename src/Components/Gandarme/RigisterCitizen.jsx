@@ -22,7 +22,7 @@ function RigisterCitizen() {
         <GNavbar/>
     <div className="flex items-center justify-center bg-green  px-3 py-6">
     <form className="form-width mt-5 p-4 bg-slate-200 form_box3 " onSubmit={handleSubmit(handleRegistration)} >
-        <div><h1 className="text-3xl font-bold text-gray-700 p-3"> Register Citizen</h1></div>
+        <div><h1 className="text-3xl font-bold text-gray-700 p-3 uppercase"> Register Citizen</h1></div>
     <div className="flex justify-around items-center font-bold mt-2">
         <label className="w-1/4">ID</label>
         <input className="leading-8 outline-none p-1 pl-2 border-color" name="ID" {...register('ID')} required/>
